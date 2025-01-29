@@ -3,7 +3,7 @@ import re
 
 def load_and_preprocess_data():
     # Загрузка датасета
-    ds = load_dataset("abobster/pushkin")
+    ds = load_dataset("abobster/pushkin_new")
 
     # Функция для предобработки текста
     def preprocess_text(text):

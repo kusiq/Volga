@@ -63,4 +63,9 @@ def train_model(full_text):
     # Обучение модели
     trainer.train()
 
+    # Сохранение модели и токенизатора
+    print("Сохранение модели и токенизатора...")
+    model.save_pretrained("./pushkin_gpt2")
+    tokenizer.save_pretrained("./pushkin_gpt2")
+
     return model, tokenizer

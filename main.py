@@ -18,7 +18,7 @@ if __name__ == "__main__":
         tokenizer = GPT2Tokenizer.from_pretrained("./pushkin_gpt2")
 
     # Интерактивный режим для генерации текста
-    print("\nМодель готова к генерации текста!")
+    print("\nМодель v0.2.0-belka готова к генерации текста!")
     while True:
         prompt = input("\nВведите начало текста (или 'exit' для выхода): ")
         if prompt.lower() in ['exit', 'quit']:

@@ -33,14 +33,13 @@ class TextDataset(Dataset):
 def train_model(full_text):
     # Загрузка предобученного токенизатора и модели Qwen-7B
     model_name = "Qwen/Qwen-7B"  # Вы можете заменить на другую модель, например "meta-llama/Llama-2-7b-hf"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    # Использование 8-битного обучения с bitsandbytes
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)  # Добавлен trust_remote_code=True
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto",  # Автоматическое распределение по устройствам
         load_in_8bit=True,  # Включение 8-битного обучения
-        torch_dtype=torch.float16  # Использование 16-битной точности
+        torch_dtype=torch.float16,  # Использование 16-битной точности
+        trust_remote_code=True  # Добавлен trust_remote_code=True
     )
 
     # Установка pad_token
@@ -64,7 +63,7 @@ def train_model(full_text):
     training_args = TrainingArguments(
         output_dir="./results",
         overwrite_output_dir=True,
-        num_train_epochs=3,
+        num_train_epochs=5,
         per_device_train_batch_size=1,
         gradient_accumulation_steps=4,
         fp16=True,  # Использование 16-битной точности

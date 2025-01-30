@@ -2,3 +2,9 @@
 /__pycache__/
 /*.pyc
 /.gitignore
+/__pycache__
+/volga_v0.3
+*.pyc
+/__pycache__
+__pycache__/model_training.cpython-312.pyc
+/__pycache__

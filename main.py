@@ -10,6 +10,8 @@ if __name__ == "__main__":
 
     # Проверка, существует ли уже обученная модель
     if not os.path.exists("./universal_model"):
+        from bitsandbytes.optim import Adam8bit
+        print("Bitsandbytes with CUDA is working!")
         print("Обучение модели...")
         model, tokenizer = train_model(full_text)
     else:

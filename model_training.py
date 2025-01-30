@@ -38,13 +38,13 @@ def train_model(full_text):
         trust_remote_code=True,
         timeout=30  # Увеличенный тайм-аут
     )
+
+    # Загрузка модели без 8-битного обучения
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto",  # Автоматическое распределение по устройствам
-        load_in_8bit=True,  # Включение 8-битного обучения
         torch_dtype=torch.float16,  # Использование 16-битной точности
-        trust_remote_code=True,
-        timeout=30  # Увеличенный тайм-аут
+        trust_remote_code=True
     )
 
     # Установка pad_token
@@ -88,7 +88,6 @@ def train_model(full_text):
 
     # Сохранение модели и токенизатора
     print("Сохранение модели и токенизатора...")
-    
     model.save_pretrained("./universal_model")
     tokenizer.save_pretrained("./universal_model")
 

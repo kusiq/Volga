@@ -8,7 +8,7 @@ def load_and_preprocess_data():
 
     # Ограничение до 0.1% статей для отладки
     total_articles = len(dataset)
-    sample_size = int(total_articles * 0.001)  # 0.1% от общего количества статей
+    sample_size = int(total_articles * 0.01)  # 0.1% от общего количества статей
     sampled_indices = random.sample(range(total_articles), sample_size)
     sampled_dataset = [dataset[i] for i in sampled_indices]
 
@@ -20,7 +20,7 @@ def load_and_preprocess_data():
     # Объединение текстов в один большой текст
     full_text = "\n".join(texts)
     # Ограничение текста до ~500 тысяч символов для увеличения объема данных
-    full_text = full_text[:500_000]
+    full_text = full_text[:5_000_000]
 
     # Предобработка текста
     def preprocess_text(text):

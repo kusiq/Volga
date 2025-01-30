@@ -1,25 +1,39 @@
-from datasets import load_dataset
+import wikipediaapi
 import re
 
 def load_and_preprocess_data():
-    # Загрузка новых датасетов
-    print("Загрузка датасетов...")
-    ds = load_dataset("wikimedia/wikipedia", "20231101.ru", split="train[:1%]")  # Russian Wikipedia Dump
+    wiki = wikipediaapi.Wikipedia(
+        language='ru',
+        user_agent='MyProject/1.0 (matveykuskov@gmail.com)'
+    )
+    # Загрузка большего количества статей
+    page_titles = [
+        "Александр Сергеевич Пушкин", "Русский язык", "Космос", "Химия",
+        "Китай", "Украина", "США", "История", "Москва", "Кострома",
+        "Санкт-Петербург", "История России", "Литература", "Культура",
+        "Наука", "Технологии", "Искусство", "Философия", "Математика",
+        "Биология", "География", "Экономика", "Политика", "Спорт"
+    ]
 
-    # Функция для предобработки текста
+    texts = []
+
+    for title in page_titles:
+        page = wiki.page(title)
+        if page.exists():
+            text = re.sub(r'\[\d+\]', '', page.text)  # Удаление сносок
+            texts.append(text)
+
+    full_text = "\n".join(texts)[:1_000_000]
+
     def preprocess_text(text):
-        text = re.sub(r'\s+', ' ', text)  # Удаление лишних пробелов
-        text = text.strip()              # Удаление пробелов в начале и конце
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'[^\w\s\.,!?;:]', '', text)  # Удаление специальных символов
+        text = text.strip()
+
         return text
 
-    # Объединение текстов из всех датасетов
-    train_texts = (
-        [preprocess_text(example['text']) for example in ds]
-    )
-
-    # Объединение всех текстов в один большой текст
-    full_text = '\n'.join(train_texts)
-
-    print(f"Total length of text: {len(full_text)} characters")
+    full_text = preprocess_text(full_text)
     
+    print(f"Total length of text: {len(full_text)} characters")
+
     return full_text

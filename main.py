@@ -9,24 +9,22 @@ if __name__ == "__main__":
     full_text = load_and_preprocess_data()
 
     # Проверка, существует ли уже обученная модель
-    if not os.path.exists("./universal_model"):
-        from bitsandbytes.optim import Adam8bit
-        print("Bitsandbytes with CUDA is working!")
+    if not os.path.exists("./volga_v0.3"):
         print("Обучение модели...")
         model, tokenizer = train_model(full_text)
     else:
         print("Загрузка сохраненной модели и токенизатора...")
-        model = AutoModelForCausalLM.from_pretrained("./universal_model", device_map="auto", torch_dtype=torch.float16)
-        tokenizer = AutoTokenizer.from_pretrained("./universal_model")
+        model = AutoModelForCausalLM.from_pretrained("./volga_v0.3")
+        tokenizer = AutoTokenizer.from_pretrained("./volga_v0.3")
 
     # Интерактивный режим для генерации текста
-    print("\nМодель 'Vолга' готова к генерации текста!")
+    print("\nМодель готова к генерации текста!")
     while True:
-        prompt = input("\nВведите начало текста ('exit' или 'выход' для завершения работы): ")
-        if prompt.lower() in ['exit', 'выход']:
+        prompt = input("\nВведите начало текста (или 'exit' для выхода): ")
+        if prompt.lower() in ['exit', 'quit']:
             print("Завершение работы.")
             break
 
         # Генерация текста
-        generated_text = generate_text(prompt, model, tokenizer, max_length=100)
+        generated_text = generate_text(prompt, model, tokenizer, max_length=50)
         print(f"\nСгенерированный текст:\n{generated_text}\n")

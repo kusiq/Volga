@@ -1,5 +1,4 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
-from peft import LoraConfig, get_peft_model
 import torch
 from torch.utils.data import Dataset
 
@@ -27,39 +26,17 @@ class TextDataset(Dataset):
         return {
             "input_ids": inputs["input_ids"].squeeze(0),
             "attention_mask": inputs["attention_mask"].squeeze(0),
-            "labels": inputs["input_ids"].squeeze(0)
+            "labels": inputs["input_ids"].squeeze(0)  # Для языковых моделей labels совпадают с input_ids
         }
 
 def train_model(full_text):
-    # Загрузка предобученного токенизатора и модели Qwen-7B
-    model_name = "Qwen/Qwen-7B"  # Или путь к локальной папке
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name,
-        trust_remote_code=True,
-        timeout=30  # Увеличенный тайм-аут
-    )
-
-    # Загрузка модели без 8-битного обучения
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map="auto",  # Автоматическое распределение по устройствам
-        torch_dtype=torch.float16,  # Использование 16-битной точности
-        trust_remote_code=True
-    )
+    # Загрузка предобученного токенизатора и модели
+    model_name = "openai-community/gpt2"  # Пример модели с ~500 млн параметров <button class="citation-flag" data-index="2">
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
 
     # Установка pad_token
     tokenizer.pad_token = tokenizer.eos_token
-
-    # Настройка LoRA (Low-Rank Adaptation)
-    lora_config = LoraConfig(
-        r=8,  # Ранг матрицы (меньше = быстрее)
-        lora_alpha=32,  # Коэффициент масштабирования
-        target_modules=["q_proj", "v_proj"],  # Целевые слои для адаптации
-        lora_dropout=0.1,  # Dropout для LoRA
-        bias="none",
-        task_type="CAUSAL_LM"
-    )
-    model = get_peft_model(model, lora_config)
 
     # Создание пользовательского датасета
     dataset = TextDataset(tokenizer, full_text)
@@ -69,9 +46,7 @@ def train_model(full_text):
         output_dir="./results",
         overwrite_output_dir=True,
         num_train_epochs=3,
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=4,
-        fp16=True,  # Использование 16-битной точности
+        per_device_train_batch_size=4,
         save_steps=10_000,
         save_total_limit=2,
     )
@@ -88,7 +63,7 @@ def train_model(full_text):
 
     # Сохранение модели и токенизатора
     print("Сохранение модели и токенизатора...")
-    model.save_pretrained("./universal_model")
-    tokenizer.save_pretrained("./universal_model")
+    model.save_pretrained("./volga_v0.3")
+    tokenizer.save_pretrained("./volga_v0.3")
 
     return model, tokenizer

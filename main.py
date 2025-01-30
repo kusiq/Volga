@@ -19,12 +19,14 @@ if __name__ == "__main__":
 
     # Интерактивный режим для генерации текста
     print("\nМодель готова к генерации текста!")
+
     while True:
         prompt = input("\nВведите начало текста (или 'exit' для выхода): ")
+
         if prompt.lower() in ['exit', 'quit']:
             print("Завершение работы.")
             break
 
         # Генерация текста
-        generated_text = generate_text(prompt, model, tokenizer, max_length=50)
+        generated_text = generate_text(prompt, model, tokenizer, max_length=200, temperature=0.7, top_k=50)
         print(f"\nСгенерированный текст:\n{generated_text}\n")

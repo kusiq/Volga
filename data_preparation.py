@@ -2,25 +2,42 @@ from datasets import load_dataset
 import re
 import random
 
+def validate_data(text):
+    if not text or len(text) < 1000:  # Минимальная длина текста
+        raise ValueError("Текст слишком короткий или пустой. Проверьте загрузку данных.")
+    if not isinstance(text, str):
+        raise TypeError("Данные должны быть строкой.")
+
 def load_and_preprocess_data():
     # Загрузка датасета wikimedia/wikipedia на русском языке (последняя версия)
-    dataset = load_dataset("wikimedia/wikipedia", "20231101.ru", split="train", trust_remote_code=True)
+    dataset = load_dataset("wikimedia/wikipedia", "20231101.ru", trust_remote_code=True)
 
-    # Ограничение до 0.1% статей для отладки
-    total_articles = len(dataset)
-    sample_size = int(total_articles * 0.01)  # 0.1% от общего количества статей
-    sampled_indices = random.sample(range(total_articles), sample_size)
-    sampled_dataset = [dataset[i] for i in sampled_indices]
+    # Разделение данных на train и validation
+    train_test_split = dataset['train'].train_test_split(test_size=0.1)
+    train_dataset = train_test_split['train']
+    validation_dataset = train_test_split['test']
+
+    # Ограничение до 1% статей
+    total_train_articles = len(train_dataset)
+    total_val_articles = len(validation_dataset)
+    sample_size_train = int(total_train_articles * 0.01)  # 1% для train
+    sample_size_val = int(total_val_articles * 0.01)      # 1% для validation
+
+    sampled_train_indices = random.sample(range(total_train_articles), sample_size_train)
+    sampled_val_indices = random.sample(range(total_val_articles), sample_size_val)
+
+    sampled_train_dataset = [train_dataset[i] for i in sampled_train_indices]
+    sampled_val_dataset = [validation_dataset[i] for i in sampled_val_indices]
 
     # Сбор текстов статей
-    texts = []
-    for article in sampled_dataset:
-        texts.append(article['text'])
+    def collect_texts(sampled_dataset):
+        texts = []
+        for article in sampled_dataset:
+            texts.append(article['text'])
+        return "\n".join(texts)
 
-    # Объединение текстов в один большой текст
-    full_text = "\n".join(texts)
-    # Ограничение текста до ~500 тысяч символов для увеличения объема данных
-    full_text = full_text[:5_000_000]
+    train_text = collect_texts(sampled_train_dataset)
+    val_text = collect_texts(sampled_val_dataset)
 
     # Предобработка текста
     def preprocess_text(text):
@@ -28,6 +45,15 @@ def load_and_preprocess_data():
         text = text.strip()
         return text
 
-    full_text = preprocess_text(full_text)
-    print(f"Total length of text: {len(full_text)} characters")
-    return full_text
+    train_text = preprocess_text(train_text[:50_000_000])  # Ограничение до 20 миллионов символов
+    val_text = preprocess_text(val_text[:5_000_000])       # Ограничение до 2 миллионов символов
+
+    # Проверка объёма данных
+    print(f"Total length of train text: {len(train_text)} characters")
+    print(f"Total length of validation text: {len(val_text)} characters")
+
+    # Проверка данных
+    validate_data(train_text)
+    validate_data(val_text)
+
+    return train_text, val_text

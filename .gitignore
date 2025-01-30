@@ -1,5 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/results
-/__pycache__
+/results/
+/__pycache__/
+/*.pyc
+/.gitignore

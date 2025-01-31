@@ -1,0 +1,22 @@
+{
+    "fp16": {
+        "enabled": true
+    },
+    "zero_optimization": {
+        "stage": 2,
+        "allgather_partitions": true,
+        "allgather_bucket_size": 2e8,
+        "reduce_scatter": true
+    },
+    "optimizer": {
+        "type": "AdamW",
+        "params": {
+            "lr": 5e-5,
+            "betas": [
+                0.9,
+                0.999
+            ],
+            "eps": 1e-8
+        }
+    }
+}

@@ -1,5 +1,3 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
 def generate_text(prompt, model, tokenizer, max_length=500, temperature=0.7, top_k=50):
     device = next(model.parameters()).device
     inputs = tokenizer(prompt, return_tensors='pt')
@@ -19,4 +17,5 @@ def generate_text(prompt, model, tokenizer, max_length=500, temperature=0.7, top
     )
     
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
     return generated_text

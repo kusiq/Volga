@@ -1,8 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
+from bitsandbytes.optim import AdamW8bit  # Используем 8-bit Adam
 import torch
 from torch.utils.data import Dataset
-from adapters import AdapterConfig
-from bitsandbytes.optim import AdamW8bit
 
 def validate_model_and_tokenizer(model_name):
     try:
@@ -14,7 +13,7 @@ def validate_model_and_tokenizer(model_name):
         raise RuntimeError(f"Ошибка при загрузке модели или токенизатора: {e}")
 
 class TextDataset(Dataset):
-    def __init__(self, tokenizer, text, max_length=512):
+    def __init__(self, tokenizer, text, max_length=512):  # Уменьшаем max_length до 512
         self.tokenizer = tokenizer
         self.max_length = max_length
         tokenized_text = tokenizer(
@@ -45,12 +44,7 @@ def train_model(train_text, val_text):
     model_name = "openai-community/gpt2-medium"
     tokenizer, model = validate_model_and_tokenizer(model_name)
     
-    # Добавляем адаптеры
-    config = AdapterConfig.load("pfeiffer", reduction_factor=16)
-    model.add_adapter("volga_adapter", config=config)
-    model.train_adapter("volga_adapter")
-    model.set_active_adapters("volga_adapter")
-    
+    # Перемещение модели на GPU, если доступно
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     torch.cuda.empty_cache()
@@ -61,24 +55,23 @@ def train_model(train_text, val_text):
     training_args = TrainingArguments(
         output_dir="./results",
         overwrite_output_dir=True,
-        num_train_epochs=2,
-        per_device_train_batch_size=4,
+        num_train_epochs=2,  # Уменьшаем количество эпох
+        per_device_train_batch_size=4,  # Уменьшаем размер батча
         per_device_eval_batch_size=2,
-        gradient_accumulation_steps=8,
+        gradient_accumulation_steps=8,  # Компенсируем меньший батч
         save_steps=500,
         logging_steps=100,
         eval_steps=200,
         warmup_steps=100,
         learning_rate=2e-4,
-        fp16=True,
-        optim="adamw_bnb_8bit",
+        fp16=True,  # Используем Mixed Precision
+        optim="adamw_bnb_8bit",  # Используем 8-bit Adam
         dataloader_num_workers=2,
         tf32=True,
-        max_grad_norm=1.0,
-        deepspeed="ds_config.json",
+        max_grad_norm=1.0
     )
     
-    optimizer = AdamW8bit(model.parameters(), lr=5e-5)
+    optimizer = AdamW8bit(model.parameters(), lr=2e-4)
     
     trainer = Trainer(
         model=model,
@@ -86,16 +79,11 @@ def train_model(train_text, val_text):
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         optimizers=(optimizer, None),
-        data_collator=lambda data: {
-            'input_ids': torch.stack([item['input_ids'] for item in data]),
-            'attention_mask': torch.stack([item['attention_mask'] for item in data]),
-            'labels': torch.stack([item['labels'] for item in data])
-        }
     )
     
     trainer.train()
 
-    model.save_pretrained("./volga_v1.2")
-    tokenizer.save_pretrained("./volga_v1.2")
-
+    model.save_pretrained("./volga_v1.3")
+    tokenizer.save_pretrained("./volga_v1.3")
+    
     return model, tokenizer

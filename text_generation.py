@@ -19,5 +19,4 @@ def generate_text(prompt, model, tokenizer, max_length=500, temperature=0.7, top
     )
     
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
     return generated_text

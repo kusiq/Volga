@@ -3,8 +3,8 @@ import re
 import random
 
 def validate_data(text):
-    if not text or len(text) < 1000:
-        raise ValueError("Текст слишком короткий или пустой.")
+    if not text or len(text) < 1000:  # Минимальная длина текста
+        raise ValueError("Текст слишком короткий или пустой. Проверьте загрузку данных.")
     if not isinstance(text, str):
         raise TypeError("Данные должны быть строкой.")
 
@@ -21,7 +21,7 @@ def load_and_preprocess_data():
     def collect_texts(sampled_dataset):
         texts = []
         for article in sampled_dataset:
-            texts.append(preprocess_text(article['text']))
+            texts.append(article['text'])
         return "\n".join(texts)
     
     train_text = collect_texts(train_dataset)
@@ -29,17 +29,19 @@ def load_and_preprocess_data():
     
     # Предобработка текста
     def preprocess_text(text):
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\s+', ' ', text)  # Удаление лишних пробелов
         text = text.strip()
         return text
     
-    # Ограничение объёма данных
-    train_text = preprocess_text(train_text[:50_000_000])  # 10 млн символов
-    val_text = preprocess_text(val_text[:5_000_000])      # 1 млн символов
+    # Ограничение объёма данных (если нужно)
+    train_text = preprocess_text(train_text[:50_000_000])  # Ограничение до 50 миллионов символов
+    val_text = preprocess_text(val_text[:5_000_000])       # Ограничение до 5 миллионов символов
     
+    # Проверка объёма данных
     print(f"Total length of train text: {len(train_text)} characters")
     print(f"Total length of validation text: {len(val_text)} characters")
     
+    # Проверка данных
     validate_data(train_text)
     validate_data(val_text)
     
